@@ -6,8 +6,16 @@ class Var:
         return f"Variable({self.name})"
 
 
+class Number:
+    def __init__(self, value: float) -> None:
+        self.value = value
+
+    def __repr__(self) -> str:
+        return f"Number({self.value})"
+
+
 class Equation:
-    def __init__(self, lhs: BinaryOp, rhs: float) -> None:
+    def __init__(self, lhs: BinaryOp, rhs: Number) -> None:
         self.lhs = lhs
         self.rhs = rhs
 
@@ -28,12 +36,12 @@ class BinaryOp(Op):
     def __init__(self, name: str) -> None:
         super().__init__(name, 2)
 
-    def __eq__(self, other: float) -> Equation:
+    def __eq__(self, other: Number) -> Equation:
         return Equation(self, other)
 
 
 class Add(BinaryOp):
-    def __init__(self, left: Var | float, right: Var | float) -> None:
+    def __init__(self, left: Var | Number, right: Var | Number) -> None:
         super().__init__("Add")
         self.left = left
         self.right = right
@@ -43,7 +51,7 @@ class Add(BinaryOp):
 
 
 class Sub(BinaryOp):
-    def __init__(self, left: Var | float, right: Var | float) -> None:
+    def __init__(self, left: Var | Number, right: Var | Number) -> None:
         super().__init__("Sub")
         self.left = left
         self.right = right
@@ -53,7 +61,7 @@ class Sub(BinaryOp):
 
 
 class Mul(BinaryOp):
-    def __init__(self, left: Var | float, right: Var | float) -> None:
+    def __init__(self, left: Var | Number, right: Var | Number) -> None:
         super().__init__("Mul")
         self.left = left
         self.right = right
@@ -63,7 +71,7 @@ class Mul(BinaryOp):
 
 
 class Div(BinaryOp):
-    def __init__(self, left: Var | float, right: Var | float) -> None:
+    def __init__(self, left: Var | Number, right: Var | Number) -> None:
         super().__init__("Div")
         self.left = left
         self.right = right
@@ -73,27 +81,28 @@ class Div(BinaryOp):
 
 
 def solve(equation: Equation) -> float:
+    rhs = equation.rhs.value
     match equation.lhs:
-        case Add(left=Var(), right=int() | float() as right):
-            return equation.rhs - right
-        case Add(left=int() | float() as left, right=Var()):
-            return equation.rhs - left
-        case Sub(left=Var(), right=int() | float() as right):
-            return equation.rhs + right
-        case Sub(left=int() | float() as left, right=Var()):
-            return left - equation.rhs
-        case Mul(left=Var(), right=int() | float() as right):
-            return equation.rhs / right
-        case Mul(left=int() | float() as left, right=Var()):
-            return equation.rhs / left
-        case Div(left=Var(), right=int() | float() as right):
-            return equation.rhs * right
-        case Div(left=int() | float() as left, right=Var()):
-            return left / equation.rhs
+        case Add(left=Var(), right=Number(value=right)):
+            return rhs - right
+        case Add(left=Number(value=left), right=Var()):
+            return rhs - left
+        case Sub(left=Var(), right=Number(value=right)):
+            return rhs + right
+        case Sub(left=Number(value=left), right=Var()):
+            return left - rhs
+        case Mul(left=Var(), right=Number(value=right)):
+            return rhs / right
+        case Mul(left=Number(value=left), right=Var()):
+            return rhs / left
+        case Div(left=Var(), right=Number(value=right)):
+            return rhs * right
+        case Div(left=Number(value=left), right=Var()):
+            return left / rhs
         case _:
             raise NotImplementedError(f"Cannot solve {equation}")
 
 
 if __name__ == "__main__":
-    equation = Mul(Var("x"), 2) == 4
+    equation = Mul(Var("x"), Number(2)) == Number(4)
     print(solve(equation))
